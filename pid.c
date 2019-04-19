@@ -21,9 +21,11 @@
 
 #include <stdio.h>
 
-void pid_init(struct pid_controller *ctrl, uint8_t k_p, uint8_t k_i,
-              uint8_t k_d)
+void pid_init(struct pid_controller *ctrl, float dt, float k_p,
+                     float k_i, float k_d)
 {
+    ctrl->cycle_time = dt;
+
     ctrl->k_p = k_p;
     ctrl->k_i = k_i;
     ctrl->k_d = k_d;
@@ -32,4 +34,38 @@ void pid_init(struct pid_controller *ctrl, uint8_t k_p, uint8_t k_i,
     ctrl->e_d = 0;
 }
 
-uint8_t pid_compute_output(struct pid_controller *ctrl, uint32_t t_set, uint32_t t_x) {}
+void pid_set_goal(struct pid_controller *ctrl, float sp)
+{
+    ctrl->sp = sp;
+
+    ctrl->e_i = 0;
+    ctrl->e_d = 0;
+}
+
+uint8_t pid_compute_output(struct pid_controller *ctrl, float t_x)
+{
+    // Compute proportional error
+    signed int e_p = ctrl->sp - t_x;
+
+    // Add proportional error to summed error
+    ctrl->e_i = ctrl->e_i + e_p * ctrl->cycle_time;
+
+    // Compute output for each term
+    signed int proportional_ouput = ctrl->k_p * e_p;
+    signed int integral_output = ctrl->k_i * ctrl->e_i;
+    signed int derivative_output =
+        ctrl->k_d * ((e_p - ctrl->e_d) / ctrl->cycle_time);
+
+    // Update last error to the current proportional error
+    ctrl->e_d = e_p;
+
+    int output =
+        proportional_ouput + integral_output + derivative_output;
+
+    if (output > PID_MAX_OUTPUT)
+        output = PID_MAX_OUTPUT;
+    else if (output < PID_MIN_OUTPUT)
+        output = PID_MIN_OUTPUT;
+
+    return output;
+}

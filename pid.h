@@ -20,37 +20,55 @@
 #ifndef _PID_H_
 #define _PID_H_
 
+#define PID_MAX_OUTPUT 100
+#define PID_MIN_OUTPUT 0
+
 #include <stdint.h>
 
 struct pid_controller {
-    uint8_t k_p;
-    uint8_t k_i;
-    uint8_t k_d;
+    int32_t sp;
 
-    uint32_t e_i;
-    uint32_t e_d;
+    float cycle_time;
+
+    float k_p;
+    float k_i;
+    float k_d;
+
+    int32_t e_i;
+    int32_t e_d;
 };
 
 /**
  * Initializes the PID controller withe the given coefficients.
  *
  * @param ctrl pointer to a pid controller
+ * @param dt   sampling time
  * @param k_p  proportional coefficient value
  * @param k_i  integral coefficient value
  * @param k_d  derivative coefficient value
  */
-extern void pid_init(struct pid_controller *ctrl, uint8_t k_p, uint8_t k_i,
-                     uint8_t k_d);
+extern void pid_init(struct pid_controller *ctrl, float dt, float k_p,
+                     float k_i, float k_d);
 
 /**
- * Computes the controller's output for the given set point temperature
- * and actual measurement.
+ * Initializes the goal set point for the given PID controller according to the
+ * given set point.
+ *
+ * @param ctrl pointer to a pid controller
+ * @param sp   set point temperature in degrees
+ */
+extern void pid_set_goal(struct pid_controller *ctrl, float sp);
+
+/**
+ * Computes the controller's output according to it's set point temperature
+ * and the given actual measurement.
  *
  * @param ctrl  pointer to a pid controller
- * @param t_set set point temperaturne in millidegrees celsius
- * @param t_x   actual measurement in millidegrees celsius
+ * @param t_x   actual measurement in degrees celsius
+ * 
+ * @returns controller output value between PID_MIN_OUTPUT and
+ *          PID_MAX_OUTPUT
  */
-extern uint8_t pid_compute_output(struct pid_controller *ctrl, uint32_t t_set,
-                                  uint32_t t_x);
+extern uint8_t pid_compute_output(struct pid_controller *ctrl, float t_x);
 
 #endif /* _PID_H_ */
