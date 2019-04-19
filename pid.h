@@ -1,0 +1,56 @@
+/*
+ * This file is part of the pid-controller distribution
+ * (https://github.com/yannishuber/pid-controller).
+ *
+ * Copyright (c) 2019 Yannis Huber.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+#pragma once
+#ifndef _PID_H_
+#define _PID_H_
+
+#include <stdint.h>
+
+struct pid_controller {
+    uint8_t k_p;
+    uint8_t k_i;
+    uint8_t k_d;
+
+    uint32_t e_i;
+    uint32_t e_d;
+};
+
+/**
+ * Initializes the PID controller withe the given coefficients.
+ *
+ * @param ctrl pointer to a pid controller
+ * @param k_p  proportional coefficient value
+ * @param k_i  integral coefficient value
+ * @param k_d  derivative coefficient value
+ */
+extern void pid_init(struct pid_controller *ctrl, uint8_t k_p, uint8_t k_i,
+                     uint8_t k_d);
+
+/**
+ * Computes the controller's output for the given set point temperature
+ * and actual measurement.
+ *
+ * @param ctrl  pointer to a pid controller
+ * @param t_set set point temperaturne in millidegrees celsius
+ * @param t_x   actual measurement in millidegrees celsius
+ */
+extern uint8_t pid_compute_output(struct pid_controller *ctrl, uint32_t t_set,
+                                  uint32_t t_x);
+
+#endif /* _PID_H_ */
